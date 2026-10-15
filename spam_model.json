@@ -1,0 +1,11 @@
+{
+  "metadata": {
+    "model_type": "TF-IDF + Multinomial Naive Bayes (scikit-learn)",
+    "samples_count": 50,
+    "spam_count": 30,
+    "ham_count": 20,
+    "accuracy": 0.7804,
+    "vocabulary_size": 1391,
+    "trained_at": "2026-10-15T23:32:42.468132"
+  }
+}

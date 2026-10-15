@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FINX — Risk Analysis Dashboard</title>
+    <meta name="description" content="FINX Risk Analysis: View threat scores, evidence breakdown, and regional advisories for scanned messages.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        (function() {
+            const saved = localStorage.getItem('finx_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</head>
+<body>
+    <div class="cyber-bg-mesh"></div>
+    <div class="cyber-ambient-glow"></div>
+
+    <div class="mobile-app-wrapper">
+
+        <!-- Analysis Dashboard Card -->
+        <main class="mobile-card">
+            <div class="card-title-row">
+                <div class="step-circle step-circle-2">📊</div>
+                <div class="card-title-col">
+                    <h1 class="card-main-title">RISK ANALYSIS DASHBOARD</h1>
+                    <span class="card-sub-code">Protection & Threat Intelligence Overview</span>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="analysis-stats-grid" id="analysis-stats">
+                <div class="analysis-stat-card">
+                    <div class="stat-card-icon">🛡️</div>
+                    <div class="stat-card-value" id="stat-total-scans">0</div>
+                    <div class="stat-card-label">Total Scans</div>
+                </div>
+                <div class="analysis-stat-card">
+                    <div class="stat-card-icon">⚠️</div>
+                    <div class="stat-card-value" id="stat-threats-found">0</div>
+                    <div class="stat-card-label">Threats Found</div>
+                </div>
+                <div class="analysis-stat-card">
+                    <div class="stat-card-icon">✅</div>
+                    <div class="stat-card-value" id="stat-safe-msgs">0</div>
+                    <div class="stat-card-label">Safe Messages</div>
+                </div>
+                <div class="analysis-stat-card">
+                    <div class="stat-card-icon">📈</div>
+                    <div class="stat-card-value" id="stat-avg-risk">0</div>
+                    <div class="stat-card-label">Avg Risk Score</div>
+                </div>
+            </div>
+
+            <!-- Threat Breakdown -->
+            <div class="analysis-section">
+                <h3 class="analysis-section-title">🔍 Scam Category Distribution</h3>
+                <div class="threat-breakdown-list" id="threat-breakdown">
+                    <div class="threat-bar-item">
+                        <div class="threat-bar-label">
+                            <span>🏦 Banking / KYC Fraud</span>
+                            <span class="threat-bar-pct">38%</span>
+                        </div>
+                        <div class="threat-bar-track"><div class="threat-bar-fill fill-red" style="width: 38%"></div></div>
+                    </div>
+                    <div class="threat-bar-item">
+                        <div class="threat-bar-label">
+                            <span>🎁 Lottery / Reward Scam</span>
+                            <span class="threat-bar-pct">24%</span>
+                        </div>
+                        <div class="threat-bar-track"><div class="threat-bar-fill fill-amber" style="width: 24%"></div></div>
+                    </div>
+                    <div class="threat-bar-item">
+                        <div class="threat-bar-label">
+                            <span>🔗 Phishing Links & Fake Portals</span>
+                            <span class="threat-bar-pct">22%</span>
+                        </div>
+                        <div class="threat-bar-track"><div class="threat-bar-fill fill-purple" style="width: 22%"></div></div>
+                    </div>
+                    <div class="threat-bar-item">
+                        <div class="threat-bar-label">
+                            <span>👤 Government & Brand Impersonation</span>
+                            <span class="threat-bar-pct">10%</span>
+                        </div>
+                        <div class="threat-bar-track"><div class="threat-bar-fill fill-cyan" style="width: 10%"></div></div>
+                    </div>
+                    <div class="threat-bar-item">
+                        <div class="threat-bar-label">
+                            <span>📱 OTP / Remote Access Theft</span>
+                            <span class="threat-bar-pct">6%</span>
+                        </div>
+                        <div class="threat-bar-track"><div class="threat-bar-fill fill-green" style="width: 6%"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Scan History -->
+            <div class="analysis-section">
+                <h3 class="analysis-section-title">📋 Recent Scan History</h3>
+                <div class="scan-history-list" id="scan-history">
+                    <div class="scan-history-empty">
+                        <span class="empty-icon">🔎</span>
+                        <p>No scans yet. Go to <a href="/msg" class="cyber-inline-link">Messages</a> to scan your first message.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Tips -->
+            <div class="analysis-section">
+                <h3 class="analysis-section-title">💡 Security Best Practices</h3>
+                <div class="safety-tips-grid">
+                    <div class="safety-tip-card">
+                        <span class="tip-icon">🚫</span>
+                        <p>Never share your OTP, PIN, or CVV with anyone — even if they claim to be from your bank or government.</p>
+                    </div>
+                    <div class="safety-tip-card">
+                        <span class="tip-icon">🔗</span>
+                        <p>Don't click links in SMS or WhatsApp from unknown senders. Verify URLs manually.</p>
+                    </div>
+                    <div class="safety-tip-card">
+                        <span class="tip-icon">📞</span>
+                        <p>If in doubt, call the National Cybercrime Helpline <a href="tel:1930" class="cyber-inline-link">1930</a> immediately.</p>
+                    </div>
+                    <div class="safety-tip-card">
+                        <span class="tip-icon">🏦</span>
+                        <p>Banks never ask for passwords or OTP via SMS or phone calls. Always use official banking apps.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Go to Scanner -->
+            <a href="/msg" class="btn-check-main" style="text-decoration: none; margin-top: 16px;">
+                <span class="scan-icon">⚡</span> Scan a New Message
+            </a>
+        </main>
+
+        <footer class="mobile-footer">
+            <p><strong>FINX</strong> · Safe, Private Scam Intelligence</p>
+            <p class="footer-sub">National Cybercrime Helpline: <a href="tel:1930">1930</a></p>
+        </footer>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="/static/js/auth.js"></script>
+    <script>
+        // Heavenly Theme Toggle Controller
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            try { localStorage.setItem('finx_theme', next); } catch(e) {}
+            updateThemeButtons();
+        }
+
+        function updateThemeButtons() {
+            const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+            const toggles = document.querySelectorAll('.btn-theme-toggle');
+            toggles.forEach(btn => {
+                btn.innerHTML = theme === 'dark' ? '☀️ <span class="theme-txt">Light</span>' : '🌙 <span class="theme-txt">Dark</span>';
+            });
+        }
+
+        // Load scan stats from localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            updateThemeButtons();
+            try {
+                const stats = JSON.parse(localStorage.getItem('finx_scan_stats') || '{}');
+                if (stats.totalScans) document.getElementById('stat-total-scans').textContent = stats.totalScans;
+                if (stats.threatsFound) document.getElementById('stat-threats-found').textContent = stats.threatsFound;
+                if (stats.safeMsgs) document.getElementById('stat-safe-msgs').textContent = stats.safeMsgs;
+                if (stats.avgRisk) document.getElementById('stat-avg-risk').textContent = stats.avgRisk;
+
+                // Load scan history
+                const history = JSON.parse(localStorage.getItem('finx_scan_history') || '[]');
+                if (history.length > 0) {
+                    const container = document.getElementById('scan-history');
+                    container.innerHTML = history.slice(0, 10).map(h => `
+                        <div class="scan-history-item risk-${h.level || 'low'}">
+                            <div class="scan-history-top">
+                                <span class="scan-history-score">${h.score || 0}/100</span>
+                                <span class="scan-history-time">${h.time || ''}</span>
+                            </div>
+                            <p class="scan-history-text">${(h.text || '').substring(0, 80)}${(h.text || '').length > 80 ? '...' : ''}</p>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {}
+        });
+    </script>
+</body>
+</html>

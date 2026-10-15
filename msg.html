@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FINX — Scan Suspicious Messages</title>
+    <meta name="description" content="FINX: Paste suspicious SMS, WhatsApp, or call transcripts to scan for cyber threats.">
+    <link rel="stylesheet" href="/static/css/style.css?v=20261016_8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        (function() {
+            const saved = localStorage.getItem('finx_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
+</head>
+<body>
+    <div class="cyber-bg-mesh"></div>
+    <div class="cyber-ambient-glow"></div>
+
+    <div class="mobile-app-wrapper">
+
+        <!-- AI & ML Settings Modal -->
+        <div id="settings-modal" class="modal-backdrop" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+            <div class="settings-modal-card">
+                <div class="modal-header-row">
+                    <h3 id="settings-title">⚙️ AI & Model Settings</h3>
+                    <button type="button" class="btn-close-modal" onclick="toggleSettingsModal()" aria-label="Close settings">✕</button>
+                </div>
+                <div class="settings-section">
+                    <h4 class="settings-section-title">🤖 Cloud AI (ChatGPT & Gemini)</h4>
+                    <p class="settings-help">Add your OpenAI API key to enable ChatGPT scam analysis with reasoning.</p>
+                    <div class="settings-field-group">
+                        <label for="ai-provider-select">Provider</label>
+                        <select id="ai-provider-select" class="settings-input">
+                            <option value="openai">OpenAI ChatGPT (gpt-4o-mini)</option>
+                            <option value="gemini">Google Gemini (gemini-1.5-flash)</option>
+                        </select>
+                    </div>
+                    <div class="settings-field-group">
+                        <label for="ai-api-key-input">API Key</label>
+                        <input type="password" id="ai-api-key-input" class="settings-input" placeholder="sk-proj-... or AIzaSy..." autocomplete="off">
+                    </div>
+                    <div class="settings-btn-row">
+                        <button type="button" class="btn-save-key" onclick="saveAIKey()">Save & Enable AI</button>
+                    </div>
+                    <p class="ai-status-indicator" id="ai-status-badge">Checking status...</p>
+                </div>
+                <div class="settings-section">
+                    <h4 class="settings-section-title">🧠 Local ML Model</h4>
+                    <p class="settings-help">Trained on internet benchmark SMS spam data + modern Indian scams.</p>
+                    <div class="ml-stats-grid">
+                        <div class="ml-stat-item"><span class="stat-label">Samples</span><strong class="stat-val" id="stat-samples">50+</strong></div>
+                        <div class="ml-stat-item"><span class="stat-label">Accuracy</span><strong class="stat-val" id="stat-accuracy">94%</strong></div>
+                        <div class="ml-stat-item"><span class="stat-label">Engine</span><strong class="stat-val" id="stat-engine">TF-IDF + NB</strong></div>
+                    </div>
+                    <button type="button" class="btn-retrain-model" onclick="retrainModel()" id="btn-retrain">🔄 Retrain Model with Feedback</button>
+                    <p class="retrain-status-text" id="retrain-status"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD 1: SCAN SUSPICIOUS MESSAGE -->
+        <section class="mobile-card" id="card-step-1">
+            <div class="card-title-row">
+                <div class="step-circle">01</div>
+                <div class="card-title-col">
+                    <h2 class="card-main-title">SCAN SUSPICIOUS MESSAGE</h2>
+                    <span class="card-sub-code">Real-Time Scam & Phishing Detection</span>
+                </div>
+            </div>
+            
+            <p class="card-instruction">Paste the message or words from a suspicious call to scan against scams and fraud patterns.</p>
+
+            <!-- Channel Segmented Control -->
+            <div class="segmented-control" role="tablist">
+                <button type="button" class="segment-btn active" id="tab-sms" onclick="setChannel('sms')">
+                    <span class="seg-icon">💬</span> SMS
+                </button>
+                <button type="button" class="segment-btn" id="tab-whatsapp" onclick="setChannel('whatsapp')">
+                    <span class="seg-icon">🟢</span> WhatsApp
+                </button>
+                <button type="button" class="segment-btn" id="tab-call" onclick="setChannel('call')">
+                    <span class="seg-icon">📞</span> Call transcript
+                </button>
+            </div>
+
+            <!-- Input -->
+            <div class="input-header-row">
+                <label for="message-input" class="input-field-label">Your message</label>
+                <button type="button" class="sample-link-btn" id="btn-load-sample" onclick="loadActiveChannelSample()">
+                    SAMPLE SMS
+                </button>
+            </div>
+
+            <div class="message-box-container">
+                <textarea 
+                    id="message-input" 
+                    rows="5" 
+                    placeholder="Dear customer, your bank account will be blocked in 24 hours. Update KYC now at bank-verify.example and share your OTP to keep your account active."
+                    aria-label="Message text to analyze"
+                >Dear customer, your bank account will be blocked in 24 hours. Update KYC now at bank-verify.example and share your OTP to keep your account active.</textarea>
+                
+                <div class="box-footer-row">
+                    <button type="button" class="btn-mic-inline" onclick="toggleVoiceInput()" id="btn-voice" title="Speak to enter message">
+                        🎤 <span id="txt-mic-label">Speak (తెలుగు / Eng)</span>
+                    </button>
+                    <span class="disclaimer-subtext">Illustrative message · Not a real link</span>
+                </div>
+            </div>
+
+            <!-- Voice Listening -->
+            <div id="voice-indicator" class="voice-listening-toast" style="display: none;">
+                <span class="recording-pulse"></span>
+                <span id="txt-listening-status">Listening in selected language... మాట్లాడండి...</span>
+            </div>
+
+            <!-- Privacy -->
+            <div class="privacy-note-row">
+                <span class="privacy-lock-icon">🔒</span>
+                <span class="privacy-text">Remove names, account numbers and personal details. Never paste an OTP or PIN.</span>
+            </div>
+
+            <!-- Analyze Button -->
+            <button type="button" class="btn-check-main" onclick="analyzeMessage()" id="btn-analyze">
+                <span class="scan-icon">⚡</span> <span class="btn-main-text">Check This Message</span>
+            </button>
+
+            <!-- Clear -->
+            <div class="clear-row">
+                <button type="button" class="btn-clear-link" onclick="clearInput()" id="btn-clear">
+                    Clear message
+                </button>
+            </div>
+
+            <!-- Language Footer -->
+            <div class="multilang-note-row">
+                <span class="translate-icon">🌐</span>
+                <p class="multilang-text">
+                    Write in English, Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali, Gujarati or Punjabi. We'll recognise the language for you.
+                </p>
+            </div>
+        </section>
+
+        <!-- Loading Spinner -->
+        <div id="loading-spinner" class="loading-overlay-card" style="display: none;" role="status">
+            <div class="loading-spinner-ring"></div>
+            <p class="loading-text">Analyzing message signals & risk level...</p>
+        </div>
+
+        <!-- CARD 2: THREAT ANALYSIS RESULT (shown after analyze) -->
+        <section class="mobile-card result-card" id="card-step-2" style="display: none;">
+            <div class="card-title-row header-space-between">
+                <div class="title-left">
+                    <div class="step-circle step-circle-2">02</div>
+                    <div class="card-title-col">
+                        <h2 class="card-main-title">Security Analysis Report</h2>
+                        <span class="card-sub-code">Verified Threat Assessment</span>
+                    </div>
+                </div>
+                <button type="button" class="btn-listen-top" onclick="toggleAudioListen()" id="btn-audio-listen" title="Listen to advisory aloud">
+                    <span class="speaker-icon">🔊</span> <span id="txt-listen-label">Listen</span>
+                </button>
+            </div>
+
+            <div class="result-sub-header">
+                <span class="check-mode-badge" id="check-mode-label">LIVE CHECK RESULT</span>
+                <span class="latency-subtext" id="latency-text">0.8 ms</span>
+            </div>
+
+            <!-- Risk Status -->
+            <div class="risk-status-box" id="risk-status-box">
+                <div class="risk-status-headline">
+                    <span class="status-warning-icon" id="status-icon">⚠️</span>
+                    <strong class="status-title" id="status-title">High risk: likely scam</strong>
+                </div>
+                <p class="status-action-advisory" id="status-advisory">
+                    Do not reply, open the link or share any details.
+                </p>
+                <div class="risk-score-wrapper">
+                    <div class="score-labels-row">
+                        <span class="score-title-label">Risk score</span>
+                        <div class="score-numbers">
+                            <span class="score-bold-num" id="risk-score-num">92</span>
+                            <span class="score-out-of">/ 100</span>
+                        </div>
+                    </div>
+                    <div class="segment-meter-track">
+                        <div class="meter-bar-segment meter-green"></div>
+                        <div class="meter-bar-segment meter-amber"></div>
+                        <div class="meter-bar-segment meter-red"></div>
+                        <div class="meter-needle-pin" id="meter-pin" style="left: 92%;"></div>
+                    </div>
+                    <div class="meter-legend-row">
+                        <span>Low 0–30</span><span>·</span><span>Medium 31–70</span><span>·</span><span>High 71–100</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ML & AI Assessment -->
+            <div class="model-assessment-pill-box" id="model-assessment-box">
+                <div class="model-badge-item" id="badge-ml-prob">
+                    <span class="model-badge-icon">🧠</span>
+                    <span class="model-badge-text" id="txt-ml-assessment">ML Spam Classifier: <strong>99.3%</strong> probability</span>
+                </div>
+                <div class="model-badge-item" id="badge-ai-provider" style="display: none;">
+                    <span class="model-badge-icon">🤖</span>
+                    <span class="model-badge-text" id="txt-ai-assessment">ChatGPT Verified</span>
+                </div>
+            </div>
+
+            <!-- Regional Alert -->
+            <div class="regional-alert-box" id="regional-alert-box">
+                <div class="regional-badge-row">
+                    <span class="regional-lang-tag" id="regional-lang-tag">తెలుగు సలహా (Telugu Advisory)</span>
+                </div>
+                <p class="regional-advisory-text" id="regional-advisory-text">
+                    ఈ సందేశం మోసపూరితంగా ఉండే అవకాశం ఉంది. మీ OTP ను ఎవరితోనూ పంచుకోవద్దు మరియు లింక్ పై క్లిక్ చేయవద్దు.
+                </p>
+            </div>
+
+            <!-- What Looks Suspicious -->
+            <div class="suspicious-section">
+                <h3 class="suspicious-heading">What looks suspicious?</h3>
+                <div class="suspicious-list" id="suspicious-list-container"></div>
+            </div>
+
+            <!-- Reasons -->
+            <div class="reasons-summary-section" id="reasons-container" style="display: none;">
+                <h4 class="reasons-heading">Why this was flagged:</h4>
+                <ul class="reasons-bullet-list" id="reasons-list"></ul>
+            </div>
+
+            <!-- AI Disclaimer -->
+            <p class="ai-disclaimer-text" id="txt-ai-disclaimer">
+                AI can make mistakes. This score is a warning, not proof. Verify with your bank through an official number.
+            </p>
+
+            <!-- Feedback -->
+            <div class="feedback-classification-box">
+                <h4 class="feedback-question">How would you classify this message?</h4>
+                <div class="feedback-btns-row">
+                    <button type="button" class="btn-fb-choice btn-fb-scam" onclick="submitFeedback('scam')" id="btn-fb-scam">
+                        <span class="fb-icon">⚑</span> Scam
+                    </button>
+                    <button type="button" class="btn-fb-choice btn-fb-legit" onclick="submitFeedback('legitimate')" id="btn-fb-legit">
+                        <span class="fb-icon">✓</span> Legitimate
+                    </button>
+                </div>
+                <p class="feedback-subtext" id="fb-feedback-msg">Helps improve detection accuracy.</p>
+            </div>
+
+            <!-- Extra Tools -->
+            <div class="extra-tools-container">
+                <button type="button" class="expandable-toggle-btn" onclick="toggleExtraTools()">
+                    <span>💬 "Help Me Say No" & Next Steps</span>
+                    <span id="extra-tools-chevron">▼</span>
+                </button>
+                <div class="extra-tools-content" id="extra-tools-content" style="display: none;">
+                    <div class="refusal-tool-box">
+                        <div class="tool-title-row">
+                            <strong>Safe Refusal Response:</strong>
+                            <button type="button" class="btn-copy-sm" onclick="copyRefusalScript()" id="btn-copy-refusal">📋 Copy</button>
+                        </div>
+                        <blockquote class="refusal-quote-text" id="refusal-quote">
+                            I cannot take action without verifying directly with official authorities.
+                        </blockquote>
+                    </div>
+                    <div class="safe-steps-tool-box">
+                        <strong>Recommended Safe Steps:</strong>
+                        <ul class="safe-steps-mini-list" id="safe-steps-list"></ul>
+                    </div>
+                    <div class="emergency-call-tool">
+                        <span>Emergency Helpline:</span>
+                        <a href="tel:1930" class="btn-call-1930-tool">📞 Dial 1930</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step-nav-row">
+                <button type="button" class="btn-secondary-step" onclick="showStep(1)">← Back</button>
+                <button type="button" class="btn-primary-step" onclick="showStep(3)">Extra features →</button>
+            </div>
+
+            <!-- Check Another -->
+            <button type="button" class="btn-check-another" onclick="scrollToInput()">
+                ← Check another message
+            </button>
+        </section>
+
+        <!-- CARD 3: EXTRA FEATURES -->
+        <section class="mobile-card" id="card-step-3" style="display: none;">
+            <div class="card-title-row">
+                <div class="step-circle step-circle-3">03</div>
+                <div class="card-title-col">
+                    <h2 class="card-main-title">Extra Features</h2>
+                    <span class="card-sub-code">Action & Safety Tools</span>
+                </div>
+            </div>
+
+            <div class="quick-actions-grid">
+                <button type="button" class="feature-action-btn" onclick="toggleExtraTools()">
+                    <span>💬</span> Help me say no
+                </button>
+                <button type="button" class="feature-action-btn" onclick="document.getElementById('btn-copy-refusal').click()">
+                    <span>📋</span> Copy reply
+                </button>
+                <a href="tel:1930" class="feature-action-btn feature-call-btn">
+                    <span>📞</span> Call 1930
+                </a>
+            </div>
+
+            <div class="extra-tools-content" id="extra-tools-content" style="display: block;">
+                <div class="refusal-tool-box">
+                    <div class="tool-title-row">
+                        <strong>Safe Refusal Response:</strong>
+                        <button type="button" class="btn-copy-sm" onclick="copyRefusalScript()" id="btn-copy-refusal">📋 Copy</button>
+                    </div>
+                    <blockquote class="refusal-quote-text" id="refusal-quote">
+                        I cannot take action without verifying directly with official authorities.
+                    </blockquote>
+                </div>
+                <div class="safe-steps-tool-box">
+                    <strong>Recommended Safe Steps:</strong>
+                    <ul class="safe-steps-mini-list" id="safe-steps-list"></ul>
+                </div>
+                <div class="emergency-call-tool">
+                    <span>Emergency Helpline:</span>
+                    <a href="tel:1930" class="btn-call-1930-tool">📞 Dial 1930</a>
+                </div>
+            </div>
+
+            <div class="step-nav-row">
+                <button type="button" class="btn-secondary-step" onclick="showStep(2)">← Back</button>
+                <button type="button" class="btn-primary-step" onclick="scrollToInput()">New check</button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="mobile-footer">
+            <p><strong>FINX</strong> · Safe, Private Scam Intelligence</p>
+            <p class="footer-sub">National Cybercrime Helpline: <a href="tel:1930">1930</a></p>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="/static/js/auth.js?v=20261016_8"></script>
+    <script src="/static/js/app.js?v=20261016_8"></script>
+</body>
+</html>
