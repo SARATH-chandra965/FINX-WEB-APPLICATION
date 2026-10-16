@@ -71,7 +71,7 @@ Before publishing on Google Play, the release owner still needs to verify the si
 
 ## Vercel web deployment
 
-Create a separate Vercel project for FINX from the team repository, with the Git branch `finx-expo-mobile` and project root `mobile`; do not change the existing Python app's Vercel project. Set `GEMINI_API_KEY` as a server-side Vercel environment variable for scan analysis and the assistant; never expose it to the Expo client build. After the first deployment gives you the FINX origin, set `EXPO_PUBLIC_FINX_API_URL` to that origin in the Vercel build environment and redeploy. Vercel builds the Expo static web export to `dist/` and discovers the serverless routes at `api/analyze.ts` and `api/assistant.ts`.
+Create a separate Vercel project for FINX from the team repository, with the Git branch `finx-expo-mobile` and project root `mobile`; do not change the existing Python app's Vercel project. The `mobile/vercel.json` configuration runs `npm run build:web`, publishes `dist/`, and leaves API route discovery enabled for `api/analyze.ts` and `api/assistant.ts`. Set `GEMINI_API_KEY` as a server-side Vercel environment variable for scan analysis and the assistant; never expose it to the Expo client build. After the first deployment gives you the FINX origin, set `EXPO_PUBLIC_FINX_API_URL` to that origin in the Vercel build environment and redeploy.
 
 ## Update/install the Android APK
 
