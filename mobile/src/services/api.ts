@@ -4,7 +4,7 @@ const REQUEST_TIMEOUT_MS = 18_000;
 const MAX_CONTENT_LENGTH = 10_000;
 
 export async function analyzeWithBackend(input: AnalyzeRequest): Promise<Omit<ScanResult, "id" | "analyzedAt">> {
-  const baseUrl = process.env.EXPO_PUBLIC_FINX_API_URL?.trim();
+  const baseUrl = getBackendBaseUrl();
   if (!baseUrl) throw new Error("Analysis service is not configured.");
   if (!input.content.trim()) throw new Error("Input content must not be empty.");
   if (input.content.length > MAX_CONTENT_LENGTH) throw new Error("Input content exceeds the 10,000 character limit.");
@@ -68,7 +68,16 @@ function isWarningSignal(value: unknown): value is WarningSignal {
 }
 
 export function hasBackendConfiguration(): boolean {
-  return !!process.env.EXPO_PUBLIC_FINX_API_URL?.trim();
+  return getBackendBaseUrl() !== null;
+}
+
+function getBackendBaseUrl(): string | null {
+  const configuredUrl = process.env.EXPO_PUBLIC_FINX_API_URL?.trim();
+  if (configuredUrl) return configuredUrl;
+  if (typeof window !== "undefined" && /^https?:\/\//i.test(window.location.origin)) {
+    return window.location.origin;
+  }
+  return null;
 }
 
 function resolveEndpoint(baseUrl: string): string {

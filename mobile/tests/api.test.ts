@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { analyzeWithBackend, isAnalyzeResponse } from "../src/services/api";
+import { analyzeWithBackend, hasBackendConfiguration, isAnalyzeResponse } from "../src/services/api";
 import type { AnalyzeResponse } from "../src/types/scam";
 
 const validResponse: AnalyzeResponse = {
@@ -39,6 +39,23 @@ describe("analysis API contract", () => {
   it("fails clearly when no backend URL is configured", async () => {
     vi.stubEnv("EXPO_PUBLIC_FINX_API_URL", "");
     await expect(analyzeWithBackend({ type: "message", content: "hello" })).rejects.toThrow(/not configured/i);
+  });
+
+  it("uses the current web origin for same-origin Vercel API routes", async () => {
+    vi.stubEnv("EXPO_PUBLIC_FINX_API_URL", "");
+    vi.stubGlobal("window", { location: { origin: "https://finx.vercel.app" } });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => validResponse,
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(hasBackendConfiguration()).toBe(true);
+    await analyzeWithBackend({ type: "message", content: "please review" });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://finx.vercel.app/api/analyze",
+      expect.objectContaining({ method: "POST" }),
+    );
   });
 
   it("joins a configured site origin with the analysis route and parses a response", async () => {
