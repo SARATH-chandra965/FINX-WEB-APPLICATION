@@ -1,5 +1,6 @@
 import React from "react";
 import { useThemeColors, type ThemeColors } from "../theme/ThemeContext";
+import Feather from "@expo/vector-icons/Feather";
 import { Alert, Linking, ScrollView, StyleSheet, Text, View } from "react-native";
 import PrimaryButton from "../components/PrimaryButton";
 import { translate, type TranslationKey } from "../constants/translations";
@@ -81,19 +82,33 @@ export default function SafetyScreen({ language }: SafetyScreenProps) {
   };
   return (
     <ScrollView contentContainerStyle={styles.page}>
-      <Text style={styles.title}>{t("safetyTitle")}</Text>
-      <Text style={styles.body}>{t("safetyIntro")}</Text>
-      <Text style={styles.section}>{t("tips")}</Text>
-      {safetyContent.map(([heading, detail]) => (
+      <View style={styles.hero}>
+        <View style={styles.heroIcon}><Feather name="shield" size={23} color={colors.blue} /></View>
+        <View style={styles.heroCopy}>
+          <Text style={styles.title}>{t("safetyTitle")}</Text>
+          <Text style={styles.body}>{t("safetyIntro")}</Text>
+        </View>
+      </View>
+      <View style={styles.sectionHeading}>
+        <Feather name="check-circle" size={18} color={colors.blue} />
+        <Text style={styles.section}>{t("tips")}</Text>
+      </View>
+      {safetyContent.map(([heading, detail], index) => (
         <View key={heading} style={styles.card}>
-          <Text style={styles.heading}>{heading}</Text>
-          <Text style={styles.body}>{detail}</Text>
+          <View style={styles.tipNumber}><Text style={styles.tipNumberText}>{String(index + 1).padStart(2, "0")}</Text></View>
+          <View style={styles.tipCopy}>
+            <Text style={styles.heading}>{heading}</Text>
+            <Text style={styles.body}>{detail}</Text>
+          </View>
         </View>
       ))}
       <View style={styles.report}>
-        <Text style={styles.heading}>{t("reportTitle")}</Text>
+        <View style={styles.reportHeading}>
+          <Feather name="flag" size={19} color={colors.blue} />
+          <Text style={styles.heading}>{t("reportTitle")}</Text>
+        </View>
         <Text style={styles.body}>{t("reportText")}</Text>
-        <PrimaryButton label={t("officialPortal")} variant="secondary" onPress={openPortal} />
+        <PrimaryButton label={t("officialPortal")} icon="external-link" variant="secondary" onPress={openPortal} />
       </View>
       <Text style={styles.disclaimer}>{t("aboutText")}</Text>
     </ScrollView>
@@ -102,11 +117,19 @@ export default function SafetyScreen({ language }: SafetyScreenProps) {
 
 function createStyles(colors: ThemeColors) { return StyleSheet.create({
   page: { width: "100%", maxWidth: 760, alignSelf: "center", padding: 18, gap: 12 },
-  title: { color: colors.navy, fontSize: 27, fontWeight: "900" },
-  section: { color: colors.navy, fontSize: 18, fontWeight: "800", marginTop: 8 },
-  card: { padding: 16, borderRadius: 16, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border, gap: 6 },
+  hero: { flexDirection: "row", alignItems: "center", gap: 13, padding: 17, borderRadius: 20, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border },
+  heroIcon: { width: 48, height: 48, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.paleBlue },
+  heroCopy: { flex: 1, gap: 4 },
+  title: { color: colors.navy, fontSize: 23, fontWeight: "900" },
+  sectionHeading: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 7, marginBottom: 2 },
+  section: { color: colors.navy, fontSize: 17, fontWeight: "800" },
+  card: { flexDirection: "row", alignItems: "flex-start", padding: 15, borderRadius: 17, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border, gap: 11 },
+  tipNumber: { width: 32, height: 32, alignItems: "center", justifyContent: "center", borderRadius: 11, backgroundColor: colors.paleBlue },
+  tipNumberText: { color: colors.blue, fontSize: 11, fontWeight: "900" },
+  tipCopy: { flex: 1, gap: 5 },
   heading: { color: colors.navy, fontSize: 15, fontWeight: "800" },
   body: { color: colors.secondaryText, fontSize: 13, lineHeight: 20 },
-  report: { padding: 18, borderRadius: 18, backgroundColor: colors.paleBlue, gap: 11, marginTop: 5 },
+  report: { padding: 18, borderRadius: 19, backgroundColor: colors.paleBlue, gap: 11, marginTop: 5 },
+  reportHeading: { flexDirection: "row", alignItems: "center", gap: 9 },
   disclaimer: { color: colors.secondaryText, fontSize: 12, lineHeight: 19, marginBottom: 10 },
 }); }

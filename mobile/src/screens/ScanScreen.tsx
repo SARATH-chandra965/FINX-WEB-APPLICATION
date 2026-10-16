@@ -19,6 +19,7 @@ interface ScanScreenProps {
 
 const inputTypes: InputType[] = ["message", "url", "transcript"];
 const labelKeys: Record<InputType, TranslationKey> = { message: "typeMessage", url: "typeUrl", transcript: "typeTranscript" };
+const typeIcons: Record<InputType, keyof typeof Feather.glyphMap> = { message: "message-circle", url: "link", transcript: "phone" };
 
 export default function ScanScreen({ language, initialType, scanning, error, onSubmit }: ScanScreenProps) {
   const colors = useThemeColors();
@@ -81,10 +82,18 @@ export default function ScanScreen({ language, initialType, scanning, error, onS
 
   return (
     <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
-      <Text style={styles.title}>{t("scan")}</Text>
-      <Text style={styles.subtitle}>{t("intro")}</Text>
+      <View style={styles.headingRow}>
+        <View style={styles.headingIcon}><Feather name="search" size={21} color={colors.blue} /></View>
+        <View style={styles.headingCopy}>
+          <Text style={styles.title}>{t("scan")}</Text>
+          <Text style={styles.subtitle}>{t("intro")}</Text>
+        </View>
+      </View>
       <View style={styles.panel}>
-        <Text style={styles.label}>{t("inputType")}</Text>
+        <View style={styles.sectionHeading}>
+          <Text style={styles.stepNumber}>1</Text>
+          <Text style={styles.label}>{t("inputType")}</Text>
+        </View>
         <View style={styles.typeOptions}>
           {inputTypes.map((item) => (
             <Pressable
@@ -94,12 +103,14 @@ export default function ScanScreen({ language, initialType, scanning, error, onS
               onPress={() => setType(item)}
               style={[styles.typeOption, type === item && styles.typeSelected]}
             >
+              <Feather name={typeIcons[item]} size={16} color={type === item ? colors.blue : colors.secondaryText} />
               <Text style={[styles.typeText, type === item && styles.typeTextSelected]}>{t(labelKeys[item])}</Text>
             </Pressable>
           ))}
         </View>
         <View style={styles.cameraHeader}>
-          <Feather name="camera" size={18} color={colors.blue} />
+          <View style={styles.stepNumber}><Text style={styles.stepNumberText}>2</Text></View>
+          <Feather name="camera" size={17} color={colors.blue} />
           <Text style={styles.label}>{t("cameraScan")}</Text>
         </View>
         <Text style={styles.cameraHint}>{t("ocrPrivacy")}</Text>
@@ -129,7 +140,10 @@ export default function ScanScreen({ language, initialType, scanning, error, onS
             </Pressable>
           </View>
         )}
-        <Text accessibilityRole="header" style={styles.label}>{t("pasteContent")}</Text>
+        <View style={styles.sectionHeading}>
+          <Text style={styles.stepNumber}>3</Text>
+          <Text accessibilityRole="header" style={styles.label}>{t("pasteContent")}</Text>
+        </View>
         <TextInput
           accessibilityLabel={t("pasteContent")}
           value={content}
@@ -148,8 +162,8 @@ export default function ScanScreen({ language, initialType, scanning, error, onS
         {readingImage && <LoadingAnimation label={t("readingPhoto")} />}
         {!!(validation || error || ocrError) && <Text accessibilityRole="alert" style={styles.error}>{validation ?? ocrError ?? error}</Text>}
         <View style={styles.actions}>
-          <PrimaryButton variant="secondary" label={t("clear")} disabled={scanning || readingImage || !content} onPress={() => { setContent(""); setValidation(null); setOcrError(null); }} style={styles.clearButton} />
-          <PrimaryButton label={t("analyze")} disabled={!content.trim() || scanning || readingImage} loading={scanning} onPress={submit} style={styles.submitButton} />
+          <PrimaryButton variant="secondary" icon="x" label={t("clear")} disabled={scanning || readingImage || !content} onPress={() => { setContent(""); setValidation(null); setOcrError(null); }} style={styles.clearButton} />
+          <PrimaryButton icon="shield" label={t("analyze")} disabled={!content.trim() || scanning || readingImage} loading={scanning} onPress={submit} style={styles.submitButton} />
         </View>
       </View>
       {scanning && <LoadingAnimation label={t("scanning")} />}
@@ -159,13 +173,19 @@ export default function ScanScreen({ language, initialType, scanning, error, onS
 }
 
 function createStyles(colors: ThemeColors) { return StyleSheet.create({
-  page: { width: "100%", maxWidth: 760, alignSelf: "center", padding: 18, gap: 12 },
-  title: { color: colors.navy, fontSize: 27, fontWeight: "900" },
-  subtitle: { color: colors.secondaryText, fontSize: 14, lineHeight: 21, marginBottom: 4 },
-  panel: { backgroundColor: colors.white, padding: 18, borderRadius: 20, borderWidth: 1, borderColor: colors.border, gap: 12 },
+  page: { width: "100%", maxWidth: 760, alignSelf: "center", padding: 18, gap: 15 },
+  headingRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 3 },
+  headingIcon: { width: 48, height: 48, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.paleBlue },
+  headingCopy: { flex: 1, gap: 3 },
+  title: { color: colors.navy, fontSize: 25, fontWeight: "900" },
+  subtitle: { color: colors.secondaryText, fontSize: 13, lineHeight: 19 },
+  panel: { backgroundColor: colors.white, padding: 17, borderRadius: 21, borderWidth: 1, borderColor: colors.border, gap: 13 },
+  sectionHeading: { flexDirection: "row", alignItems: "center", gap: 9 },
+  stepNumber: { width: 25, height: 25, textAlign: "center", textAlignVertical: "center", overflow: "hidden", borderRadius: 9, backgroundColor: colors.paleBlue, color: colors.blue, fontSize: 12, fontWeight: "900" },
+  stepNumberText: { color: colors.blue, fontSize: 12, fontWeight: "900" },
   label: { color: colors.navy, fontSize: 14, fontWeight: "800" },
   typeOptions: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 5 },
-  typeOption: { minHeight: 48, justifyContent: "center", paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: colors.border, borderRadius: 12 },
+  typeOption: { minHeight: 47, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: colors.border, borderRadius: 13, backgroundColor: colors.inputSurface },
   typeSelected: { backgroundColor: colors.paleBlue, borderColor: colors.blue },
   typeText: { color: colors.secondaryText, fontSize: 12, fontWeight: "700" },
   typeTextSelected: { color: colors.blue },
@@ -176,7 +196,7 @@ function createStyles(colors: ThemeColors) { return StyleSheet.create({
   cameraButtonText: { color: colors.blue, fontSize: 13, fontWeight: "800" },
   cameraPressed: { opacity: 0.75 },
   cameraDisabled: { opacity: 0.5 },
-  input: { minHeight: 190, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.inputSurface, borderRadius: 14, padding: 14, color: colors.text, fontSize: 14, lineHeight: 21 },
+  input: { minHeight: 190, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.inputSurface, borderRadius: 16, padding: 15, color: colors.text, fontSize: 14, lineHeight: 21 },
   urlInput: { minHeight: 100 },
   counter: { alignSelf: "flex-end", color: colors.secondaryText, fontSize: 11 },
   error: { color: colors.red, fontSize: 13, lineHeight: 19 },

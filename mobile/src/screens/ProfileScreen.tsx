@@ -39,7 +39,13 @@ export default function ProfileScreen({ language, historyCount, user, authError,
   const t = (key: TranslationKey) => translate(language, key);
   return (
     <ScrollView contentContainerStyle={styles.page}>
-      <Text style={styles.title}>{t("profile")}</Text>
+      <View style={styles.pageHeading}>
+        <View style={styles.pageIcon}><Feather name="user" size={21} color={colors.blue} /></View>
+        <View>
+          <Text style={styles.title}>{t("profile")}</Text>
+          <Text style={styles.pageSubtitle}>{t("settings")}</Text>
+        </View>
+      </View>
       <View style={styles.card}>
         <View style={styles.profileHeader}>
           <Pressable
@@ -74,8 +80,8 @@ export default function ProfileScreen({ language, historyCount, user, authError,
         </View>
         {!!authError && <Text accessibilityRole="alert" style={styles.error}>{authError}</Text>}
         {user
-          ? <PrimaryButton label={t("signOut")} variant="secondary" onPress={onSignOut} />
-          : <PrimaryButton label={t("signIn")} onPress={onSignIn} />}
+          ? <PrimaryButton label={t("signOut")} icon="log-out" variant="secondary" onPress={onSignOut} />
+          : <PrimaryButton label={t("signIn")} icon="log-in" onPress={onSignIn} />}
       </View>
       <View style={styles.card}>
         <SectionHeading icon="globe" title={t("selectLanguage")} />
@@ -160,9 +166,12 @@ function Info({ icon, title, description }: { icon: keyof typeof Feather.glyphMa
 }
 
 function createStyles(colors: ThemeColors) { return StyleSheet.create({
-  page: { width: "100%", maxWidth: 760, alignSelf: "center", padding: 18, paddingBottom: 28, gap: 12 },
-  title: { color: colors.navy, fontSize: 27, fontWeight: "900", marginBottom: 4 },
-  card: { padding: 17, borderRadius: 17, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border, gap: 10 },
+  page: { width: "100%", maxWidth: 760, alignSelf: "center", padding: 18, paddingBottom: 34, gap: 13 },
+  pageHeading: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 2 },
+  pageIcon: { width: 47, height: 47, borderRadius: 16, alignItems: "center", justifyContent: "center", backgroundColor: colors.paleBlue },
+  title: { color: colors.navy, fontSize: 25, fontWeight: "900" },
+  pageSubtitle: { color: colors.secondaryText, fontSize: 12, marginTop: 2 },
+  card: { padding: 17, borderRadius: 19, backgroundColor: colors.white, borderWidth: 1, borderColor: colors.border, gap: 11 },
   profileHeader: { flexDirection: "row", alignItems: "center", gap: 15 },
   avatarButton: { width: 76, height: 76, borderRadius: 38, position: "relative" },
   avatarImage: { width: 76, height: 76, borderRadius: 38, backgroundColor: colors.paleBlue },

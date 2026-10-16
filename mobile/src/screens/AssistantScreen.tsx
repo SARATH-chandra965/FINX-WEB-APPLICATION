@@ -112,7 +112,10 @@ export default function AssistantScreen({ language }: AssistantScreenProps) {
       <View style={styles.intro}>
         <View style={styles.titleRow}>
           <View style={styles.icon}><Feather name="message-circle" size={22} color={colors.blue} /></View>
-          <Text accessibilityRole="header" style={styles.title}>{t("assistantTitle")}</Text>
+          <View style={styles.titleCopy}>
+            <Text accessibilityRole="header" style={styles.title}>{t("assistantTitle")}</Text>
+            <View style={styles.secureTag}><Feather name="lock" size={11} color={colors.green} /><Text style={styles.secureText}>{t("privacy")}</Text></View>
+          </View>
         </View>
         <Text style={styles.body}>{t("assistantIntro")}</Text>
         <Text style={styles.privacy}>{t("assistantPrivacy")}</Text>
@@ -121,12 +124,13 @@ export default function AssistantScreen({ language }: AssistantScreenProps) {
       <ScrollView style={styles.conversation} contentContainerStyle={styles.messageList} keyboardShouldPersistTaps="handled">
         {messages.length === 0 && (
           <View style={styles.empty}>
-            <Feather name="shield" size={24} color={colors.blue} />
+            <View style={styles.emptyIcon}><Feather name="shield" size={22} color={colors.blue} /></View>
             <Text style={styles.emptyText}>{t("assistantWelcome")}</Text>
           </View>
         )}
         {messages.map((message, index) => (
           <View key={`${index}-${message.role}`} style={[styles.bubble, message.role === "user" ? styles.userBubble : styles.assistantBubble]}>
+            {message.role === "assistant" && <View style={styles.messageIcon}><Feather name="shield" size={13} color={colors.blue} /></View>}
             <Text style={[styles.messageText, message.role === "user" && styles.userMessageText]}>{message.content}</Text>
             {message.role === "assistant" && (
               <Pressable
@@ -189,30 +193,35 @@ export default function AssistantScreen({ language }: AssistantScreenProps) {
 }
 
 function createStyles(colors: ThemeColors) { return StyleSheet.create({
-  page: { flex: 1, width: "100%", maxWidth: 760, alignSelf: "center", paddingHorizontal: 18, paddingBottom: 12, gap: 10 },
-  intro: { backgroundColor: colors.white, borderColor: colors.border, borderWidth: 1, borderRadius: 18, padding: 16, gap: 8 },
+  page: { flex: 1, width: "100%", maxWidth: 760, alignSelf: "center", paddingHorizontal: 18, paddingBottom: 14, gap: 10 },
+  intro: { backgroundColor: colors.white, borderColor: colors.border, borderWidth: 1, borderRadius: 20, padding: 16, gap: 9 },
   titleRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  icon: { width: 40, height: 40, borderRadius: 14, backgroundColor: colors.paleBlue, alignItems: "center", justifyContent: "center" },
-  title: { color: colors.navy, fontSize: 19, fontWeight: "800", flex: 1 },
+  icon: { width: 45, height: 45, borderRadius: 15, backgroundColor: colors.paleBlue, alignItems: "center", justifyContent: "center" },
+  titleCopy: { flex: 1, gap: 3 },
+  title: { color: colors.navy, fontSize: 18, fontWeight: "800" },
+  secureTag: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start" },
+  secureText: { color: colors.green, fontSize: 10, fontWeight: "800", textTransform: "uppercase", letterSpacing: 0.4 },
   body: { color: colors.secondaryText, fontSize: 13, lineHeight: 19 },
   privacy: { color: colors.secondaryText, fontSize: 11, lineHeight: 16 },
   conversation: { flex: 1 },
-  messageList: { flexGrow: 1, justifyContent: "flex-end", paddingVertical: 8, gap: 10 },
-  empty: { alignItems: "center", justifyContent: "center", gap: 10, padding: 25 },
+  messageList: { flexGrow: 1, justifyContent: "flex-end", paddingVertical: 8, gap: 11 },
+  empty: { alignItems: "center", justifyContent: "center", gap: 10, padding: 28 },
+  emptyIcon: { width: 48, height: 48, alignItems: "center", justifyContent: "center", borderRadius: 17, backgroundColor: colors.paleBlue },
   emptyText: { color: colors.secondaryText, fontSize: 14, textAlign: "center", lineHeight: 21 },
-  bubble: { maxWidth: "88%", padding: 13, borderRadius: 16 },
-  userBubble: { alignSelf: "flex-end", backgroundColor: colors.blue, borderBottomRightRadius: 4 },
-  assistantBubble: { alignSelf: "flex-start", backgroundColor: colors.white, borderColor: colors.border, borderWidth: 1, borderBottomLeftRadius: 4 },
+  bubble: { maxWidth: "90%", padding: 13, borderRadius: 17 },
+  userBubble: { alignSelf: "flex-end", backgroundColor: colors.blue, borderBottomRightRadius: 5 },
+  assistantBubble: { alignSelf: "flex-start", backgroundColor: colors.white, borderColor: colors.border, borderWidth: 1, borderBottomLeftRadius: 5 },
+  messageIcon: { width: 24, height: 24, alignItems: "center", justifyContent: "center", borderRadius: 8, backgroundColor: colors.paleBlue, marginBottom: 6 },
   messageText: { color: colors.text, fontSize: 14, lineHeight: 21 },
   userMessageText: { color: colors.onWhite },
   replay: { alignSelf: "flex-end", marginTop: 8, padding: 4 },
   loadingBubble: { flexDirection: "row", alignItems: "center", gap: 8 },
   error: { color: colors.red, fontSize: 13, lineHeight: 18, paddingHorizontal: 4 },
   controls: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
-  micButton: { width: 48, height: 48, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white, borderRadius: 16 },
+  micButton: { width: 50, height: 50, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.border, backgroundColor: colors.white, borderRadius: 17 },
   micActive: { backgroundColor: colors.paleRed, borderColor: colors.red },
   input: { minHeight: 50, maxHeight: 120, paddingHorizontal: 14, paddingVertical: 12, borderRadius: 16, borderWidth: 1, borderColor: colors.border, color: colors.text, backgroundColor: colors.inputSurface, fontSize: 14, textAlignVertical: "top" },
   composer: { flex: 1 },
-  sendButton: { width: 48, height: 48, alignItems: "center", justifyContent: "center", borderRadius: 16, backgroundColor: colors.blue },
+  sendButton: { width: 50, height: 50, alignItems: "center", justifyContent: "center", borderRadius: 17, backgroundColor: colors.blue },
   disabled: { opacity: 0.5 },
 }); }
