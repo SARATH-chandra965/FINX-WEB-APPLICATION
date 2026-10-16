@@ -22,6 +22,12 @@ afterEach(() => {
 describe("analysis API contract", () => {
   it("accepts a valid structured backend result", () => {
     expect(isAnalyzeResponse(validResponse)).toBe(true);
+    expect(isAnalyzeResponse({
+      result: { ...validResponse.result, analysisNote: "ai-fallback" },
+    })).toBe(true);
+    expect(isAnalyzeResponse({
+      result: { ...validResponse.result, analysisNote: "unexpected" },
+    })).toBe(false);
   });
 
   it("rejects invalid scores and unbounded response shapes", () => {
@@ -49,6 +55,18 @@ describe("analysis API contract", () => {
     expect(result.score).toBe(45);
   });
 
+  it("preserves an explicit AI fallback note for the result screen", async () => {
+    vi.stubEnv("EXPO_PUBLIC_FINX_API_URL", "https://finx.example");
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ result: { ...validResponse.result, analysisNote: "ai-fallback" } }),
+    }));
+
+    const analysis = await analyzeWithBackend({ type: "message", content: "please review" });
+    expect(analysis.method).toBe("backend-rules");
+    expect(analysis.analysisNote).toBe("ai-fallback");
+  });
+
   it("reports a timeout rather than pretending the service succeeded", async () => {
     vi.stubEnv("EXPO_PUBLIC_FINX_API_URL", "https://finx.example");
     vi.useFakeTimers();
@@ -58,7 +76,7 @@ describe("analysis API contract", () => {
 
     const pending = analyzeWithBackend({ type: "message", content: "please review" });
     const assertion = expect(pending).rejects.toThrow(/timed out/i);
-    await vi.advanceTimersByTimeAsync(8_000);
+    await vi.advanceTimersByTimeAsync(18_000);
     await assertion;
   });
 });

@@ -1,6 +1,6 @@
 import type { AnalyzeRequest, AnalyzeResponse, ScanResult, WarningSignal } from "../types/scam";
 
-const REQUEST_TIMEOUT_MS = 8_000;
+const REQUEST_TIMEOUT_MS = 18_000;
 const MAX_CONTENT_LENGTH = 10_000;
 
 export async function analyzeWithBackend(input: AnalyzeRequest): Promise<Omit<ScanResult, "id" | "analyzedAt">> {
@@ -29,6 +29,7 @@ export async function analyzeWithBackend(input: AnalyzeRequest): Promise<Omit<Sc
       signals: analysis.signals,
       recommendations: analysis.recommendations,
       method: analysis.analysisMethod,
+      ...(analysis.analysisNote ? { analysisNote: analysis.analysisNote } : {}),
     };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -53,6 +54,7 @@ export function isAnalyzeResponse(value: unknown): value is AnalyzeResponse {
   if (new Set(result.signals.map((signal) => signal.id)).size !== result.signals.length) return false;
   if (!("recommendations" in result) || !Array.isArray(result.recommendations) || result.recommendations.length > 10 || !result.recommendations.every((item) => typeof item === "string" && item.length <= 500)) return false;
   if (!("analysisMethod" in result) || (result.analysisMethod !== "local-rules" && result.analysisMethod !== "backend-rules" && result.analysisMethod !== "ai-provider")) return false;
+  if ("analysisNote" in result && result.analysisNote !== "ai-fallback") return false;
   return !("modelVersion" in result) || typeof result.modelVersion === "string" && result.modelVersion.length <= 120;
 }
 

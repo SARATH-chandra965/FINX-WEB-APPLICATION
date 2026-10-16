@@ -1,5 +1,6 @@
 import { analyzeContent, isInputType } from "../src/services/scamDetector";
 import type { AnalyzeRequest, AnalyzeResponse } from "../src/types/scam";
+import { analyzeWithGemini, createRuleFallback } from "./geminiAnalysis";
 
 interface ApiRequest {
   method?: string;
@@ -18,7 +19,7 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
 const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
 
-export default function handler(req: ApiRequest, res: ApiResponse): void {
+export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
   if (req.method !== "POST") {
     res.status(405).json({ error: "Method not allowed." });
     return;
@@ -58,17 +59,23 @@ export default function handler(req: ApiRequest, res: ApiResponse): void {
   }
 
   try {
-    const analysis = analyzeContent({ type, content } satisfies AnalyzeRequest);
-    const result: AnalyzeResponse["result"] = {
-      riskScore: analysis.score,
-      riskLevel: analysis.level,
-      summary: analysis.summary,
-      signals: analysis.signals,
-      recommendations: analysis.recommendations,
-      analysisMethod: "backend-rules",
-    };
+    const input = { type, content } satisfies AnalyzeRequest;
+    const baseline = analyzeContent(input);
+    let result: AnalyzeResponse["result"];
+    const apiKey = process.env.GEMINI_API_KEY?.trim();
+    if (!apiKey) {
+      result = createRuleFallback(baseline);
+    } else {
+      try {
+        result = await analyzeWithGemini(input, baseline, apiKey);
+      } catch (error) {
+        console.error("Gemini scan failed; returning a rule-based result.", error instanceof Error ? error.message : "Unknown provider error.");
+        result = createRuleFallback(baseline);
+      }
+    }
     res.status(200).json({ result });
-  } catch {
+  } catch (error) {
+    console.error("Scan analysis failed.", error instanceof Error ? error.message : "Unknown analysis error.");
     res.status(500).json({ error: "Analysis could not be completed." });
   }
 }

@@ -94,7 +94,8 @@ export default function ResultScreen({ language, result, onScanAgain, onHome }: 
           </View>
           <Text style={[styles.score, { color: tone }]}>{result.score}<Text style={styles.outOf}>/100</Text></Text>
         </View>
-        <Text style={styles.text}>{t("score")} · {result.method === "local-rules" ? t("offline") : result.method === "ai-provider" ? t("aiService") : t("online")}</Text>
+        <Text style={styles.text}>{t(result.method === "ai-provider" ? "aiScore" : "score")} · {result.method === "local-rules" ? t("offline") : result.method === "ai-provider" ? t("aiService") : t("online")}</Text>
+        {result.analysisNote === "ai-fallback" && <Text accessibilityRole="alert" style={styles.fallbackNote}>{t("aiFallback")}</Text>}
         <Text style={styles.summary}>{translateRiskSummary(language, result.level)}</Text>
         <Pressable
           accessibilityRole="button"
@@ -151,6 +152,7 @@ function createStyles(colors: ThemeColors) { return StyleSheet.create({
   score: { fontSize: 25, fontWeight: "900" },
   outOf: { fontSize: 11, color: colors.secondaryText, fontWeight: "700" },
   text: { color: colors.secondaryText, fontSize: 13, lineHeight: 20, marginTop: 4 },
+  fallbackNote: { color: colors.amber, backgroundColor: colors.paleAmber, padding: 10, borderRadius: 11, fontSize: 12, lineHeight: 18, marginTop: 5 },
   summary: { color: colors.navy, fontSize: 17, fontWeight: "800", lineHeight: 25, marginTop: 12 },
   listenButton: { minHeight: 46, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, marginTop: 10, paddingHorizontal: 13, paddingVertical: 9, borderRadius: 13, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.paleBlue },
   listenLabel: { color: colors.blue, fontSize: 14, fontWeight: "800" },

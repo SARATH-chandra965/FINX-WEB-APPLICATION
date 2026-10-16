@@ -13,6 +13,7 @@ interface ScanScreenProps {
   language: Language;
   initialType: InputType;
   scanning: boolean;
+  onlineConfigured: boolean;
   error: string | null;
   onSubmit: (type: InputType, content: string) => void;
 }
@@ -21,7 +22,7 @@ const inputTypes: InputType[] = ["message", "url", "transcript"];
 const labelKeys: Record<InputType, TranslationKey> = { message: "typeMessage", url: "typeUrl", transcript: "typeTranscript" };
 const typeIcons: Record<InputType, keyof typeof Feather.glyphMap> = { message: "message-circle", url: "link", transcript: "phone" };
 
-export default function ScanScreen({ language, initialType, scanning, error, onSubmit }: ScanScreenProps) {
+export default function ScanScreen({ language, initialType, scanning, onlineConfigured, error, onSubmit }: ScanScreenProps) {
   const colors = useThemeColors();
   const styles = createStyles(colors);
   const [type, setType] = useState<InputType>(initialType);
@@ -166,7 +167,7 @@ export default function ScanScreen({ language, initialType, scanning, error, onS
           <PrimaryButton icon="shield" label={t("analyze")} disabled={!content.trim() || scanning || readingImage} loading={scanning} onPress={submit} style={styles.submitButton} />
         </View>
       </View>
-      {scanning && <LoadingAnimation label={t("scanning")} />}
+      {scanning && <LoadingAnimation label={t(onlineConfigured ? "scanningOnline" : "scanning")} />}
       <Text style={styles.privacy}>{t("privacyText")}</Text>
     </ScrollView>
   );

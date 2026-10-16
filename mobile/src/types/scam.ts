@@ -23,6 +23,7 @@ export interface ScanResult {
   signals: WarningSignal[];
   recommendations: string[];
   method: DetectionMethod;
+  analysisNote?: "ai-fallback";
   analyzedAt: string;
 }
 
@@ -45,6 +46,7 @@ export interface AnalyzeResultPayload {
   signals: WarningSignal[];
   recommendations: string[];
   analysisMethod: DetectionMethod;
+  analysisNote?: "ai-fallback";
   modelVersion?: string;
 }
 

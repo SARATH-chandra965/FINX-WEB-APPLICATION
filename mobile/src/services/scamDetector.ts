@@ -43,7 +43,15 @@ export function analyzeContent(input: ScanInput): Omit<ScanResult, "id" | "analy
     }
   }
 
-  score = Math.min(score, 100);
+  return formatAnalysis(score, signals, "local-rules");
+}
+
+export function formatAnalysis(
+  rawScore: number,
+  signals: WarningSignal[],
+  method: "local-rules" | "backend-rules" | "ai-provider",
+): Omit<ScanResult, "id" | "analyzedAt"> {
+  const score = Math.max(0, Math.min(100, Math.round(rawScore)));
   const level: RiskLevel = score >= 71 ? "high" : score >= 31 ? "medium" : "low";
   const recommendations = level === "high"
     ? ["Do not click links, install software, share credentials, or send money.", "Verify the claim using an official app or a contact detail you already trust."]
@@ -56,7 +64,16 @@ export function analyzeContent(input: ScanInput): Omit<ScanResult, "id" | "analy
     : level === "medium"
       ? "Some warning signs were found. Pause and verify independently."
       : "Few configured warning signs were found; this does not prove the content is safe.";
-  return { score, level, summary, signals, recommendations, method: "local-rules" };
+  return { score, level, summary, signals, recommendations, method };
+}
+
+export function getRuleSignalDefinition(id: string): WarningSignal | null {
+  const rule = rules.find((candidate) => candidate.id === id);
+  return rule ? { id: rule.id, title: rule.title, explanation: rule.explanation } : null;
+}
+
+export function getKnownRuleSignalIds(): string[] {
+  return rules.map((rule) => rule.id);
 }
 
 export function isInputType(value: unknown): value is InputType {

@@ -350,7 +350,7 @@ export default function App() {
           onLogin={() => { setAuthError(null); setAuthScreen("login"); }}
         />}
         {!authScreen && route === "Home" && <HomeScreen language={language} history={history} onNavigate={setRoute} onChooseScan={chooseScan} />}
-        {!authScreen && route === "Scan" && <ScanScreen key={inputType} language={language} initialType={inputType} scanning={scanning} error={scanError} onSubmit={startScan} />}
+        {!authScreen && route === "Scan" && <ScanScreen key={inputType} language={language} initialType={inputType} scanning={scanning} onlineConfigured={hasBackendConfiguration()} error={scanError} onSubmit={startScan} />}
         {!authScreen && route === "Result" && <ResultScreen language={language} result={result} onScanAgain={() => chooseScan(inputType)} onHome={() => setRoute("Home")} />}
         {!authScreen && route === "History" && <HistoryScreen language={language} history={history} onClear={clearHistory} />}
         {!authScreen && route === "Assistant" && <AssistantScreen language={language} />}
