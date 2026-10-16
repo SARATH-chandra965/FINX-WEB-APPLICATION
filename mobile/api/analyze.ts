@@ -1,5 +1,5 @@
 import { analyzeContent, isInputType } from "../src/services/scamDetector";
-import type { AnalyzeRequest, AnalyzeResponse } from "../src/types/scam";
+import type { AnalyzeRequest, AnalyzeResponse, Language } from "../src/types/scam";
 import { analyzeWithGemini, createRuleFallback } from "./geminiAnalysis";
 
 interface ApiRequest {
@@ -17,6 +17,7 @@ interface ApiResponse {
 const MAX_CONTENT_LENGTH = 10_000;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
+const SUPPORTED_LANGUAGES: Language[] = ["en", "te", "hi", "ta", "kn"];
 const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
 
 export default async function handler(req: ApiRequest, res: ApiResponse): Promise<void> {
@@ -48,7 +49,7 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     return;
   }
 
-  const { type, content } = body as Record<string, unknown>;
+  const { type, content, language } = body as Record<string, unknown>;
   if (!isInputType(type) || typeof content !== "string" || !content.trim()) {
     res.status(400).json({ error: "Input type or content is invalid." });
     return;
@@ -57,9 +58,17 @@ export default async function handler(req: ApiRequest, res: ApiResponse): Promis
     res.status(413).json({ error: "Input exceeds the 10,000 character limit." });
     return;
   }
+  if (language !== undefined && (typeof language !== "string" || !SUPPORTED_LANGUAGES.includes(language as Language))) {
+    res.status(400).json({ error: "Language must be one of en, te, hi, ta, or kn." });
+    return;
+  }
 
   try {
-    const input = { type, content } satisfies AnalyzeRequest;
+    const input: AnalyzeRequest = {
+      type,
+      content,
+      language: language === undefined ? "en" : language as Language,
+    };
     const baseline = analyzeContent(input);
     let result: AnalyzeResponse["result"];
     const apiKey = process.env.GEMINI_API_KEY?.trim();

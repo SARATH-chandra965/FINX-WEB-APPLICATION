@@ -31,6 +31,7 @@ describe("analysis API handler", () => {
     expect((await invoke(request("GET"))).statusCode).toBe(405);
     expect((await invoke(request("POST", "{bad json}", "malformed-client"))).statusCode).toBe(400);
     expect((await invoke(request("POST", { type: "image", content: "hello" }, "invalid-type-client"))).statusCode).toBe(400);
+    expect((await invoke(request("POST", { type: "message", content: "hello", language: "xx" }, "invalid-language-client"))).statusCode).toBe(400);
   });
 
   it("returns an explicit rule-based fallback without exposing message content when Gemini is not configured", async () => {
@@ -59,6 +60,7 @@ describe("analysis API handler", () => {
               text: JSON.stringify({
                 riskScore: 75,
                 signals: [{ id: "social-pressure", evidence: "keep this between us" }],
+                speechText: "ఈ అభ్యర్థన అనుమానాస్పదంగా ఉంది. చర్య తీసుకునే ముందు అధికారిక మార్గంలో తనిఖీ చేయండి.",
               }),
             }],
           },
@@ -70,6 +72,7 @@ describe("analysis API handler", () => {
     const response = await invoke(request("POST", {
       type: "message",
       content: "Please keep this between us",
+      language: "te",
     }, "gemini-client"));
 
     expect(response.statusCode).toBe(200);
@@ -78,12 +81,16 @@ describe("analysis API handler", () => {
         riskLevel: "medium",
         analysisMethod: "ai-provider",
         modelVersion: "gemini-2.5-flash",
+        speechText: "ఈ అభ్యర్థన అనుమానాస్పదంగా ఉంది. చర్య తీసుకునే ముందు అధికారిక మార్గంలో తనిఖీ చేయండి.",
         signals: [expect.objectContaining({ id: "social-pressure" })],
       },
     });
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("/models/gemini-2.5-flash:generateContent"),
-      expect.objectContaining({ headers: expect.objectContaining({ "x-goog-api-key": "test-server-key" }) }),
+      expect.objectContaining({
+        headers: expect.objectContaining({ "x-goog-api-key": "test-server-key" }),
+        body: expect.stringContaining("Telugu"),
+      }),
     );
     expect(JSON.stringify(response.body)).not.toContain("Please keep this between us");
   });
@@ -99,6 +106,7 @@ describe("analysis API handler", () => {
               text: JSON.stringify({
                 riskScore: 99,
                 signals: [{ id: "payment", evidence: "text that is not present" }],
+                speechText: "This message seems suspicious. Verify it independently.",
               }),
             }],
           },

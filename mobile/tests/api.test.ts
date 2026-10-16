@@ -67,6 +67,22 @@ describe("analysis API contract", () => {
     expect(analysis.analysisNote).toBe("ai-fallback");
   });
 
+  it("sends the selected language and preserves model speech text", async () => {
+    vi.stubEnv("EXPO_PUBLIC_FINX_API_URL", "https://finx.example");
+    const speechText = "దయచేసి ఈ అభ్యర్థనను జాగ్రత్తగా పరిశీలించండి.";
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        result: { ...validResponse.result, analysisMethod: "ai-provider", speechText },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const analysis = await analyzeWithBackend({ type: "message", content: "please review", language: "te" });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body as string)).toMatchObject({ language: "te" });
+    expect(analysis.speechText).toBe(speechText);
+  });
+
   it("reports a timeout rather than pretending the service succeeded", async () => {
     vi.stubEnv("EXPO_PUBLIC_FINX_API_URL", "https://finx.example");
     vi.useFakeTimers();

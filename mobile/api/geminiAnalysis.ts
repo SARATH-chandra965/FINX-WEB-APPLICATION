@@ -1,5 +1,5 @@
 import { formatAnalysis, getKnownRuleSignalIds, getRuleSignalDefinition } from "../src/services/scamDetector";
-import type { AnalyzeRequest, AnalyzeResultPayload, WarningSignal } from "../src/types/scam";
+import type { AnalyzeRequest, AnalyzeResultPayload, Language, WarningSignal } from "../src/types/scam";
 
 const MODEL = "gemini-2.5-flash";
 const REQUEST_TIMEOUT_MS = 12_000;
@@ -9,6 +9,7 @@ const MAX_AI_SIGNALS = 8;
 interface GeminiCandidate {
   riskScore: number;
   signals: { id: string; evidence: string }[];
+  speechText: string;
 }
 
 export async function analyzeWithGemini(
@@ -32,6 +33,7 @@ export async function analyzeWithGemini(
               "Return a risk score from 0 to 100. Only include a warning signal when the content itself gives concrete support.",
               "Each signal must use one of the supplied signal IDs and include an exact, contiguous evidence excerpt copied verbatim from the input. Never invent or paraphrase evidence. Do not treat ordinary account notices or routine payment references alone as proof of fraud.",
               "Use these known signal IDs only: " + knownSignalIds().join(", "),
+              `Write speechText in ${languageNames[input.language ?? "en"]}. It should be one or two short spoken sentences explaining the concrete warning signs and one practical next step. Do not state a risk score or risk level; FINX will speak the final combined risk level separately. Be calm and uncertain where appropriate. Do not read back or quote the submitted content, include secrets, or say that this is a guarantee.`,
             ].join(" "),
           }],
         },
@@ -45,9 +47,10 @@ export async function analyzeWithGemini(
           responseMimeType: "application/json",
           responseSchema: {
             type: "OBJECT",
-            required: ["riskScore", "signals"],
+            required: ["riskScore", "signals", "speechText"],
             properties: {
               riskScore: { type: "INTEGER" },
+              speechText: { type: "STRING" },
               signals: {
                 type: "ARRAY",
                 items: {
@@ -85,6 +88,7 @@ export async function analyzeWithGemini(
       signals: analysis.signals,
       recommendations: analysis.recommendations,
       analysisMethod: "ai-provider",
+      speechText: candidate.speechText,
       modelVersion: MODEL,
     };
   } catch (error) {
@@ -130,7 +134,8 @@ function extractCandidate(value: unknown): GeminiCandidate | null {
   }
   if (!isRecord(parsed) || typeof parsed.riskScore !== "number" || !Number.isInteger(parsed.riskScore)
     || parsed.riskScore < 0 || parsed.riskScore > 100
-    || !Array.isArray(parsed.signals) || parsed.signals.length > MAX_AI_SIGNALS) return null;
+    || !Array.isArray(parsed.signals) || parsed.signals.length > MAX_AI_SIGNALS
+    || typeof parsed.speechText !== "string" || !parsed.speechText.trim() || parsed.speechText.length > 1_000) return null;
 
   const signals: { id: string; evidence: string }[] = [];
   for (const signal of parsed.signals) {
@@ -138,7 +143,7 @@ function extractCandidate(value: unknown): GeminiCandidate | null {
       || !signal.evidence.trim() || signal.evidence.length > 300) return null;
     signals.push({ id: signal.id, evidence: signal.evidence });
   }
-  return { riskScore: parsed.riskScore, signals };
+  return { riskScore: parsed.riskScore, signals, speechText: parsed.speechText.trim() };
 }
 
 function validateSignals(candidates: GeminiCandidate["signals"], content: string): WarningSignal[] {
@@ -167,3 +172,11 @@ function mergeSignals(baseline: WarningSignal[], aiSignals: WarningSignal[]): Wa
 function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
+
+const languageNames: Record<Language, string> = {
+  en: "English",
+  te: "Telugu",
+  hi: "Hindi",
+  ta: "Tamil",
+  kn: "Kannada",
+};

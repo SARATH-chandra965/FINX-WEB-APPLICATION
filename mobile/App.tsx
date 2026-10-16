@@ -127,7 +127,7 @@ export default function App() {
       let analysis;
       if (hasBackendConfiguration()) {
         try {
-          analysis = await analyzeWithBackend({ type, content });
+          analysis = await analyzeWithBackend({ type, content, language });
           lastSubmission.current = null;
         } catch {
           analysis = analyzeContent({ type, content });
@@ -174,7 +174,7 @@ export default function App() {
     setNotice(null);
     setShowRetry(false);
     try {
-      const analysis = await analyzeWithBackend(submission);
+      const analysis = await analyzeWithBackend({ ...submission, language });
       lastSubmission.current = null;
       const now = new Date().toISOString();
       const completed: ScanResult = { ...analysis, id: `${Date.now()}`, analyzedAt: now };

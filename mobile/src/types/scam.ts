@@ -24,6 +24,7 @@ export interface ScanResult {
   recommendations: string[];
   method: DetectionMethod;
   analysisNote?: "ai-fallback";
+  speechText?: string;
   analyzedAt: string;
 }
 
@@ -37,7 +38,9 @@ export interface ScanHistoryRecord {
   scannedAt: string;
 }
 
-export interface AnalyzeRequest extends ScanInput {}
+export interface AnalyzeRequest extends ScanInput {
+  language?: Language;
+}
 
 export interface AnalyzeResultPayload {
   riskScore: number;
@@ -47,6 +50,7 @@ export interface AnalyzeResultPayload {
   recommendations: string[];
   analysisMethod: DetectionMethod;
   analysisNote?: "ai-fallback";
+  speechText?: string;
   modelVersion?: string;
 }
 

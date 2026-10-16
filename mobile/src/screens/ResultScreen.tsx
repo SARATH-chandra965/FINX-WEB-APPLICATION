@@ -42,11 +42,14 @@ export default function ResultScreen({ language, result, onScanAgain, onHome }: 
       const localized = translateSignal(language, signal);
       return `${localized.title}. ${localized.explanation}`;
     });
-    const spokenText = [
+    const localizedSpokenText = [
       translateRiskSummary(language, result.level),
       ...localizedSignals,
       ...translateRecommendations(language, result.level),
     ].join(". ");
+    const spokenText = result.method === "ai-provider" && result.speechText
+      ? `${translateRiskSummary(language, result.level)}. ${result.speechText}`
+      : localizedSpokenText;
     try {
       const voices = await Speech.getAvailableVoicesAsync();
       const languagePrefix = languageCode[language].split("-")[0];

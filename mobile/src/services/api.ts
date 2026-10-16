@@ -30,6 +30,7 @@ export async function analyzeWithBackend(input: AnalyzeRequest): Promise<Omit<Sc
       recommendations: analysis.recommendations,
       method: analysis.analysisMethod,
       ...(analysis.analysisNote ? { analysisNote: analysis.analysisNote } : {}),
+      ...(analysis.speechText ? { speechText: analysis.speechText } : {}),
     };
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
@@ -55,6 +56,7 @@ export function isAnalyzeResponse(value: unknown): value is AnalyzeResponse {
   if (!("recommendations" in result) || !Array.isArray(result.recommendations) || result.recommendations.length > 10 || !result.recommendations.every((item) => typeof item === "string" && item.length <= 500)) return false;
   if (!("analysisMethod" in result) || (result.analysisMethod !== "local-rules" && result.analysisMethod !== "backend-rules" && result.analysisMethod !== "ai-provider")) return false;
   if ("analysisNote" in result && result.analysisNote !== "ai-fallback") return false;
+  if ("speechText" in result && (typeof result.speechText !== "string" || !result.speechText.trim() || result.speechText.length > 1_000)) return false;
   return !("modelVersion" in result) || typeof result.modelVersion === "string" && result.modelVersion.length <= 120;
 }
 
