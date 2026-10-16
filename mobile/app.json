@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "FINX",
+    "slug": "finx",
+    "version": "1.0.0",
+    "description": "Check suspicious messages, links, and call transcripts for common warning signs.",
+    "icon": "./assets/icon.png",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "scheme": "finx",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.finx.security"
+    },
+    "android": {
+      "package": "com.finx.security",
+      "versionCode": 1,
+      "icon": "./assets/icon.png",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#172554"
+      }
+    },
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F5F7FC"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "33208e4f-5418-4ef7-bd84-eba3eb94b312"
+      }
+    },
+    "plugins": [
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FINX uses photos you select to read suspicious text or set a local profile picture.",
+          "cameraPermission": "FINX uses the camera only when you choose to photograph text for a scan.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "FINX uses the microphone only when you choose voice input for the assistant.",
+          "speechRecognitionPermission": "FINX uses speech recognition to transcribe your voice for review before sending."
+        }
+      ]
+    ]
+  }
+}
